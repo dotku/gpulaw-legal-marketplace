@@ -3,11 +3,12 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const lawyer = await prisma.lawyerProfile.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         user: {
           select: {
@@ -34,7 +35,7 @@ export async function GET(
         languages: {
           select: {
             language: true,
-            proficiency: true
+            isPrimary: true
           },
           orderBy: {
             language: 'asc'
@@ -42,11 +43,15 @@ export async function GET(
         },
         reviews: {
           include: {
-            client: {
+            consultation: {
               include: {
-                user: {
-                  select: {
-                    email: true
+                client: {
+                  include: {
+                    user: {
+                      select: {
+                        email: true
+                      }
+                    }
                   }
                 }
               }

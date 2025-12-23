@@ -4,12 +4,13 @@ import { requireAdmin } from '@/lib/auth/rbac'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Require admin role
     await requireAdmin()
 
+    const { id } = await params
     const body = await request.json()
     const { action, notes } = body
 
@@ -21,7 +22,7 @@ export async function POST(
     }
 
     const lawyer = await prisma.lawyerProfile.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!lawyer) {
@@ -41,11 +42,11 @@ export async function POST(
     // Update lawyer status
     const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED'
     const updatedLawyer = await prisma.lawyerProfile.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: newStatus,
         verificationNotes: notes || null,
-        verifiedAt: action === 'approve' ? new Date() : null
+        approvedAt: action === 'approve' ? new Date() : null
       }
     })
 

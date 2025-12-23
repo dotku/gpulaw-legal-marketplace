@@ -13,18 +13,17 @@ export async function POST(request: NextRequest) {
       lastName,
       barNumber,
       barState,
-      phoneNumber,
+      officePhone,
       city,
       state,
       zipCode,
       officeAddress,
       bio,
-      yearsOfExperience,
-      education,
-      certifications,
+      yearsExperience,
+      lawSchool,
       hourlyRate,
       consultationFee,
-      websiteUrl,
+      website,
       categories,
       languages
     } = body
@@ -61,6 +60,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Calculate bar admission date based on years of experience
+    const barAdmissionDate = new Date()
+    if (yearsExperience) {
+      barAdmissionDate.setFullYear(barAdmissionDate.getFullYear() - parseInt(yearsExperience))
+    }
+
     // Create lawyer profile
     const lawyerProfile = await prisma.lawyerProfile.create({
       data: {
@@ -69,18 +74,18 @@ export async function POST(request: NextRequest) {
         lastName,
         barNumber,
         barState,
-        phoneNumber,
+        barAdmissionDate,
+        officePhone,
         city,
         state,
         zipCode,
         officeAddress,
         bio,
-        yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
-        education,
-        certifications,
+        yearsExperience: yearsExperience ? parseInt(yearsExperience) : 0,
+        lawSchool,
         hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
         consultationFee: consultationFee ? parseFloat(consultationFee) : null,
-        websiteUrl,
+        website,
         status: 'PENDING_VERIFICATION'
       }
     })
@@ -113,7 +118,7 @@ export async function POST(request: NextRequest) {
         data: languages.map((lang: any) => ({
           lawyerId: lawyerProfile.id,
           language: lang.language,
-          proficiency: lang.proficiency || 'FLUENT'
+          isPrimary: lang.isPrimary || false
         }))
       })
     }

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         documents: {
           select: {
             id: true,
-            documentType: true,
+            type: true,
             fileUrl: true,
             uploadedAt: true
           }
