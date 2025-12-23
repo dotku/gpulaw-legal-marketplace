@@ -40,20 +40,27 @@ interface LawyerProfile {
   }>
   languages: Array<{
     language: string
-    proficiency: string
+    isPrimary: boolean
   }>
   reviews: Array<{
     id: string
-    rating: number
-    comment: string | null
+    overallRating: number
+    professionalismRating?: number | null
+    communicationRating?: number | null
+    valueRating?: number | null
+    reviewText?: string | null
+    reviewTextZhCn?: string | null
+    reviewTextZhTw?: string | null
     createdAt: string
-    client: {
-      firstName: string | null
-      lastName: string | null
-      user: {
-        email: string
-      }
-    }
+    consultation?: {
+      client?: {
+        firstName?: string | null
+        lastName?: string | null
+        user: {
+          email: string
+        }
+      } | null
+    } | null
   }>
   _count: {
     reviews: number
@@ -238,7 +245,7 @@ export default function LawyerProfilePage() {
                         key={lang.language}
                         className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
                       >
-                        {lang.language} ({lang.proficiency})
+                        {lang.language} {lang.isPrimary ? '(Primary)' : ''}
                       </span>
                     ))}
                   </div>
@@ -257,9 +264,15 @@ export default function LawyerProfilePage() {
               ) : (
                 <div className="space-y-6">
                   {lawyer.reviews.map(review => {
-                    const clientName = review.client.firstName && review.client.lastName
-                      ? `${review.client.firstName} ${review.client.lastName}`
-                      : review.client.user.email.split('@')[0]
+                    const clientProfile = review.consultation?.client
+                    const clientEmail = clientProfile?.user?.email
+                    const clientName = clientProfile?.firstName && clientProfile?.lastName
+                      ? `${clientProfile.firstName} ${clientProfile.lastName}`
+                      : clientEmail
+                        ? clientEmail.split('@')[0]
+                        : 'Anonymous client'
+                    const comment = review.reviewText || review.reviewTextZhCn || review.reviewTextZhTw
+                    const ratingValue = review.overallRating || 0
 
                     return (
                       <div key={review.id} className="border-b pb-6 last:border-b-0">
@@ -269,7 +282,7 @@ export default function LawyerProfilePage() {
                               <span
                                 key={i}
                                 className={`text-xl ${
-                                  i < review.rating ? 'text-yellow-500' : 'text-gray-300'
+                                  i < ratingValue ? 'text-yellow-500' : 'text-gray-300'
                                 }`}
                               >
                                 ★
@@ -283,8 +296,8 @@ export default function LawyerProfilePage() {
                             {new Date(review.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        {review.comment && (
-                          <p className="text-gray-700">{review.comment}</p>
+                        {comment && (
+                          <p className="text-gray-700">{comment}</p>
                         )}
                       </div>
                     )
