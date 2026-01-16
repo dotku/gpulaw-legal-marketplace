@@ -121,11 +121,22 @@ export default function LawyerProfilePage() {
     )
   }
 
-  const fullName = `${lawyer.firstName} ${lawyer.lastName}`
+  const firstName = lawyer.firstName || ''
+  const lastName = lawyer.lastName || ''
+  const categories = lawyer.categories || []
+  const languages = lawyer.languages || []
+  const reviews = lawyer.reviews || []
+  const counts = lawyer._count || { reviews: 0, consultations: 0 }
+
+  const fullName =
+    firstName && lastName
+      ? `${firstName} ${lastName}`
+      : firstName || lastName || 'Unknown Lawyer'
   const location = [lawyer.city, lawyer.state].filter(Boolean).join(', ')
   const rating = lawyer.averageRating ? Number(lawyer.averageRating).toFixed(1) : null
-  const primaryCategory = lawyer.categories.find(c => c.isPrimary)?.category
-  const otherCategories = lawyer.categories.filter(c => !c.isPrimary)
+  const primaryCategory = categories.find(c => c.isPrimary)?.category
+  const otherCategories = categories.filter(c => !c.isPrimary)
+  const profileImage = lawyer.profilePhotoUrl || (lawyer as any).profileImage
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,15 +159,15 @@ export default function LawyerProfilePage() {
               <div className="flex flex-col sm:flex-row gap-6 mb-6">
                 {/* Photo */}
                 <div className="flex-shrink-0">
-                  {lawyer.profilePhotoUrl ? (
+                  {profileImage ? (
                     <img
-                      src={lawyer.profilePhotoUrl}
+                      src={profileImage}
                       alt={fullName}
                       className="w-32 h-32 rounded-full object-cover border-4 border-blue-200"
                     />
                   ) : (
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold">
-                      {lawyer.firstName[0]}{lawyer.lastName[0]}
+                      {firstName?.[0] || '?'}{lastName?.[0] || ''}
                     </div>
                   )}
                 </div>
@@ -184,7 +195,7 @@ export default function LawyerProfilePage() {
                         <span className="text-2xl font-bold text-gray-900 ml-2">{rating}</span>
                       </div>
                       <span className="text-gray-600">
-                        ({lawyer._count.reviews} {lawyer._count.reviews === 1 ? 'review' : 'reviews'})
+                        ({counts.reviews} {counts.reviews === 1 ? 'review' : 'reviews'})
                       </span>
                     </div>
                   )}
@@ -236,11 +247,11 @@ export default function LawyerProfilePage() {
               )}
 
               {/* Languages */}
-              {lawyer.languages.length > 0 && (
+              {languages.length > 0 && (
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Languages</h3>
                   <div className="flex flex-wrap gap-2">
-                    {lawyer.languages.map(lang => (
+                    {languages.map(lang => (
                       <span
                         key={lang.language}
                         className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
@@ -259,11 +270,11 @@ export default function LawyerProfilePage() {
                 Client Reviews ({lawyer._count.reviews})
               </h2>
 
-              {lawyer.reviews.length === 0 ? (
+              {reviews.length === 0 ? (
                 <p className="text-gray-600">No reviews yet</p>
               ) : (
                 <div className="space-y-6">
-                  {lawyer.reviews.map(review => {
+                  {reviews.map(review => {
                     const clientProfile = review.consultation?.client
                     const clientEmail = clientProfile?.user?.email
                     const clientName = clientProfile?.firstName && clientProfile?.lastName
@@ -385,7 +396,7 @@ export default function LawyerProfilePage() {
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <p className="text-2xl font-bold text-gray-900">
-                      {lawyer._count.consultations}
+                      {counts.consultations}
                     </p>
                     <p className="text-sm text-gray-600">Consultations</p>
                   </div>
